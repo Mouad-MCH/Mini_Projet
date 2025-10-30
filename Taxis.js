@@ -29,7 +29,7 @@ function addTaxi() {
     let totalRides = 0;
     let id = taxis.length + 1;
 
-   taxis.push({id,position,available,timeRemaining,totalRides})
+    taxis.push({id,position,available,timeRemaining,totalRides})
 }
 
 // Function Add Request
@@ -58,7 +58,7 @@ function addRequests() {
 function TaxiPlusProche(n) {
     let availableTaxis = taxis.filter((el) => el.available);
 
-    if(taxis.length == 0) {
+    if(taxis.length == 0 || availableTaxis) {
         return null;
     }
 
@@ -77,7 +77,7 @@ function TaxiPlusProche(n) {
         
     }
     
-    return {taxi: taxis[index], mindistance: min};
+    return {taxi: availableTaxis[index], Distance: min};
 
 }
 
@@ -87,14 +87,49 @@ function assignerTaxi(taxi, request) {
     taxi.available = false;
     taxi.timeRemaining = request.duration;
     taxi.totalRides++;
-    taxi.position = request.position;
     console.log(`Minute ${currentTime}: → Demande ${request.reqId} à la position ${request.position} → Taxi ${taxi.id} assigné (distance: ${Math.abs(request.position - taxi.position)})`);
+    taxi.position = request.position;
 
 }
 
 // Fonction pour faire avancer le temps d'une minute
 
-// Fonction pour afficher l'état actuel
+function advanceTime() {
+    console.log(`\n--- Minute ${currentTime} ---`);
+
+    let currentRequests = requests.filter(el => el.time === currentTime);
+
+    for(let request of currentRequests) {
+        let result = TaxiPlusProche(request.position);
+        
+        if(result) {
+            assignerTaxi(result.taxi, request)
+        }else {
+            waitingQueue.push(request)
+            console.log(`Minute ${currentTime}: → Demande ${request.reqId} à la position ${request.position} → Tous les taxis occupés → Ajoutée à la file d'attente.`);
+        }
+    }
+
+
+    for(let taxi of taxis) {
+        if(!taxi.available) {
+            taxi.timeRemaining--
+            if(taxi.timeRemaining == 0) {
+                taxi.available = true;
+                console.log(`Minute ${currentTime}: → Taxi ${taxi.id} a terminé sa course.`);
+
+                if(waitingQueue.length > 0) {
+                    let nextRequest = waitingQueue.shift();
+                    assignerTaxi(taxi,nextRequest)
+                }
+            }
+        }
+    }
+
+    currentTime++;
+
+}
+
 
 // Fonction pour générer le rapport finalµ
 
