@@ -1,4 +1,7 @@
 const prompt = require('prompt-sync')();
+// let add_position = document.getElementsByClassName(".add_position");
+// let add_duration = document.getElementsByClassName(".add_duration");
+// let add_time = document.getElementsByClassName(".add_time");
 
 let taxis = [
     { id: 1, position: 5, available: true, timeRemaining: 0, totalRides: 0 },
@@ -7,7 +10,7 @@ let taxis = [
 ];
 let requests = [
     { reqId: 1, position: 10, duration: 3, time: 0 }
-];
+]; 
 
 let  waitingQueue = [];
 let currentTime = 0;
