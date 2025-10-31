@@ -14,9 +14,12 @@ let currentTime = 0;
 
 
 function menu() {
-    console.log("/// --------Menu--------- /////");
+    console.log("/// --------Menu--------- ///// ");
     console.log("1 => Ajoute un taxi");
     console.log("2 => Ajoute un demande");
+    console.log("3 => Avancer d'une minute")
+    console.log("4 => Afficher l'état actuel")
+    console.log("5 => lancer la simulation complète")
     console.log("0 => Quitter");
 }
 
@@ -40,12 +43,12 @@ function addRequests() {
     // let reqId = 0;
     let position = +prompt("add your position: ");
     let duration = +prompt("add duration: ");
-    let time = 0;
+    let time = +prompt("Heure d'arrivée de la demande : ");
 
-    for(let i =0; i<requests.length; i++) {
-        requests[i].time++;
-        // requests[i].reqId++;
-    }
+    // for(let i =0; i<requests.length; i++) {
+    //     requests[i].time++;
+    //     // requests[i].reqId++;
+    // }
 
     requests.push({reqId, position, duration, time})
     console.log(`✓ Demande ${reqId} ajoutée - Position: ${position}, Durée: ${duration}, Heure: ${time}`);
@@ -58,26 +61,26 @@ function addRequests() {
 function TaxiPlusProche(n) {
     let availableTaxis = taxis.filter((el) => el.available);
 
-    if(taxis.length == 0 || availableTaxis) {
+    if(taxis.length === 0) {
         return null;
     }
 
     // find min destance
-    let min = n;
+    let min = Infinity;
     let dis;
-    let index;
+    let index = availableTaxis[0];
 
     for(let j = 0; j<availableTaxis.length; j++) {
         dis = Math.abs(n - availableTaxis[j].position);
         if(dis<min) {
             min = dis;
-            index = j;
+            index = availableTaxis[j];
         }
         // console.log(`nomber ${min} index => ${index}`)
         
     }
     
-    return {taxi: availableTaxis[index], Distance: min};
+    return {taxi: index, Distance: min};
 
 }
 
@@ -127,30 +130,84 @@ function advanceTime() {
     }
 
     currentTime++;
+    display()
+}
 
+// function display 
+
+function display() {
+    console.log("Taxis:");
+    taxis.forEach(taxi => {
+        let status = taxi.available ? "Disponible" : `occupé est (${taxi.timeRemaining}) min restantes`;
+        console.log(`  Taxi ${taxi.id}: Position ${taxi.position}, ${status}, Courses: ${taxi.totalRides}`);
+    })
+
+    console.log(`File d'attente: ${waitingQueue.length} demande(s)`);
+    waitingQueue.forEach(req => {
+        console.log(`  - Demande ${req.reqId}: Position ${req.position}, Durée ${req.duration}`);
+    });
 }
 
 
 // Fonction pour générer le rapport finalµ
 
+function rapport() {
+    console.log("--- Final Report ---")
+    let TotaleRides = 0;
+
+    for(let taxi of taxis) {
+        console.log(`Taxi ${taxi.id}: ${taxi.totalRides} rides, position ${taxi.position}`)
+        TotaleRides += taxi.totalRides;
+    }
+
+    console.log(`Total des courses: ${TotaleRides}`);  
+}
+
 // Fonction pour lancer la simulation complète
 
 
+function runSimulation() {
+    let maxTime = Math.max(...requests.map(el => el.time)) + 10;
+
+    for(let time = 0; time<= maxTime; time++) {
+        currentTime = time;
+        advanceTime()
+        // verefi tout les element termine
+        let allAvailable = taxis.every(el => el.available);
+        let empty = waitingQueue.length === 0;
+        if(allAvailable && empty && time > maxTime-5) {
+            console.log("\n✓ Toutes les courses sont terminées !");
+            rapport();
+            break;
+        }
+    }
+    
+}
 
 
 /* -----Affichage  -------*/
 function afficheMenu() {
+    let chos;
+    do {
     menu()
-    let chos = +prompt("choizer un nombre: ")
+    chos = +prompt("choizer un nombre: ")
     switch(chos) {
         case 1 : addTaxi() 
         break;
         case 2: addRequests()
         break;
-        case 0 : return;
-    }
+        case 3: advanceTime()
+        break;
+        case 4: display()
+        break;
+        case 5: runSimulation()
+        break;
+        case 0 :console.log("Au revoir !")
+        break;
+        default: console.log('! option note valide');
+    }    
+    }while(chos !== 0)
+
 }
 
 afficheMenu()
-
-console.log(requests)
